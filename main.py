@@ -53,6 +53,32 @@ def cmd_params(args) -> None:
               f"(hors positions : {model.num_parameters(non_embedding=True):,})  {cfg.to_dict()}")
 
 
+def cmd_inspect(args) -> None:
+    """Affiche le contenu d'un checkpoint : config, étape, et chaque tenseur de poids."""
+    import torch
+
+    from mini_ai.training import load_checkpoint
+
+    ckpt = load_checkpoint(args.checkpoint)
+    print(f"fichier        : {args.checkpoint}")
+    print(f"étape          : {ckpt['step']}   meilleure val loss : {ckpt['best_val_loss']:.4f}   run : {ckpt.get('extra', {}).get('run', '?')}")
+    print(f"config modèle  : {ckpt['model_config']}")
+    state = ckpt["model_state"]
+    total = 0
+    print(f"\n{'nom du tenseur':<42} {'forme':<18} {'nb':>10} {'moyenne':>9} {'écart-type':>11} {'min':>8} {'max':>8}")
+    print("-" * 112)
+    for name, t in state.items():
+        t = t.float()
+        total += t.numel()
+        print(f"{name:<42} {str(tuple(t.shape)):<18} {t.numel():>10,} {t.mean():>9.4f} {t.std():>11.4f} {t.min():>8.3f} {t.max():>8.3f}")
+    print("-" * 112)
+    print(f"{'total':<42} {'':<18} {total:>10,}")
+    if args.show:
+        t = state[args.show]
+        torch.set_printoptions(precision=4, sci_mode=False, edgeitems=4)
+        print(f"\n{args.show} {tuple(t.shape)} :\n{t}")
+
+
 def cmd_download_data(args) -> None:
     from mini_ai.training.download import PRESETS, download
 
@@ -75,7 +101,15 @@ def cmd_download_data(args) -> None:
 def cmd_prepare_data(args) -> None:
     from mini_ai.training import prepare_dataset
 
-    prepare_dataset(args.raw, args.out, args.tokenizer, vocab_size=args.vocab_size, val_ratio=args.val_ratio)
+    tokenizer = None
+    if args.keep_tokenizer:
+        from mini_ai.tokenizer import Tokenizer
+
+        if not Path(args.tokenizer).exists():
+            raise SystemExit(f"--keep-tokenizer : aucun tokenizer trouvé à {args.tokenizer}")
+        tokenizer = Tokenizer.load(args.tokenizer)
+        print(f"[data] tokenizer existant réutilisé ({tokenizer.vocab_size} tokens) — les checkpoints restent compatibles")
+    prepare_dataset(args.raw, args.out, args.tokenizer, vocab_size=args.vocab_size, val_ratio=args.val_ratio, tokenizer=tokenizer)
 
 
 def cmd_train(args) -> None:
@@ -221,6 +255,11 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--preset", default="all")
     sp.set_defaults(func=cmd_params)
 
+    sp = sub.add_parser("inspect", help="liste les paramètres appris d'un checkpoint")
+    sp.add_argument("--checkpoint", default=str(C.BEST_CHECKPOINT))
+    sp.add_argument("--show", default=None, help="affiche les valeurs d'un tenseur, ex: wte.weight_table.weight")
+    sp.set_defaults(func=cmd_inspect)
+
     sp = sub.add_parser("download-data", help="télécharge un corpus Hugging Face (streaming) dans data/raw/")
     sp.add_argument("--preset", default=None, help="wiki-fr, wiki-en, tinystories, french-books, python-code")
     sp.add_argument("--dataset", default=None, help="identifiant HF, ex: wikimedia/wikipedia")
@@ -239,6 +278,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--tokenizer", default=str(C.TOKENIZER_PATH))
     sp.add_argument("--vocab-size", type=int, default=C.DEFAULT_VOCAB_SIZE)
     sp.add_argument("--val-ratio", type=float, default=C.VAL_RATIO)
+    sp.add_argument("--keep-tokenizer", action="store_true", help="réutilise tokenizer.json au lieu de le réapprendre (garde les checkpoints compatibles)")
     sp.set_defaults(func=cmd_prepare_data)
 
     sp = sub.add_parser("train", help="entraîne le modèle")

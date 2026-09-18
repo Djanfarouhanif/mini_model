@@ -1,14 +1,16 @@
 [
-  {"prompt": "Django utilise l'architecture", "expected": "MTV"},
-  {"prompt": "Le créateur du langage est", "expected": "Guido van Rossum"},
-  {"prompt": "Python est un langage de", "expected": "programmation"},
-  {"prompt": "Le manager coordonne les", "expected": "agents"},
-  {"prompt": "Le mot Python vient du nom de la troupe comique", "expected": "Monty Python"},
-  {"prompt": "SQLite est un moteur de base de données", "expected": "relationnelle"},
-  {"prompt": "La première version publique est sortie en", "expected": "1991"},
-  {"prompt": "L'algorithme BPE, pour Byte Pair", "expected": "Encoding"},
-  {"prompt": "Le critique analyse les réponses et identifie les", "expected": "problèmes"},
-  {"prompt": "Le modèle GPT est un Transformer", "expected": "décodeur"},
-  {"prompt": "La température contrôle", "expected": "l'aléa"},
-  {"prompt": "Un environnement virtuel isole les", "expected": "dépendances"}
+  {"prompt": "Arsène Lupin est un personnage de fiction français créé par", "expected": "Maurice Leblanc"},
+  {"prompt": "Un algorithme est une suite finie et non ambiguë", "expected": "d'instructions"},
+  {"prompt": "L'Afghanistan est un pays", "expected": "montagneux"},
+  {"prompt": "L'Argentine est une république", "expected": "présidentielle"},
+  {"prompt": "L'Autriche est un pays neutre, qui ne fait, par exemple, pas partie de", "expected": "l'OTAN"},
+  {"prompt": "L'Auvergne est une région importante pour la production de", "expected": "fromages"},
+  {"prompt": "Le maté est une infusion traditionnelle consommée en", "expected": "Argentine"},
+  {"prompt": "Johnny Clegg est un chanteur sud-africain, surnommé le", "expected": "zoulou blanc"},
+  {"prompt": "Miriam Makeba est une chanteuse de", "expected": "jazz"},
+  {"prompt": "Nadine Gordimer est une femme de lettres sud-africaine, elle a reçu le prix", "expected": "Nobel"},
+  {"prompt": "Le rugby à XV est un sport très pratiqué dans", "expected": "l'Aude"},
+  {"prompt": "Antoine Meillet est un philologue", "expected": "français"},
+  {"prompt": "Il naît à Moulins le 11 novembre", "expected": "1866"},
+  {"prompt": "Le cinéma de Kurosawa est un cinéma", "expected": "épique"}
 ]

@@ -42,8 +42,8 @@ PRESETS: dict[str, DatasetPreset] = {
         "Livres français du domaine public",
     ),
     "python-code": DatasetPreset(
-        "bigcode/the-stack-smol", "data/python", "train", "content", "python_code.txt",
-        "Extraits de code Python (The Stack, petit échantillon)",
+        "codeparrot/codeparrot-clean", None, "train", "content", "python_code.txt",
+        "Fichiers Python issus de GitHub (CodeParrot, public)",
     ),
 }
 
@@ -71,7 +71,20 @@ def download(
         print(f"[download] {dataset}" + (f" ({config})" if config else "") + f" split={split} champ={text_field!r}")
         print(f"[download] streaming jusqu'à {max_chars:,} caractères → {out_path}")
 
-    ds = load_dataset(dataset, config, split=split, streaming=True)
+    try:
+        ds = load_dataset(dataset, config, split=split, streaming=True)
+    except Exception as exc:  # noqa: BLE001
+        msg = str(exc)
+        if "gated" in msg.lower() or "authenticated" in msg.lower():
+            raise SystemExit(
+                f"[download] '{dataset}' est un dataset à accès restreint (gated).\n"
+                "  1. Créez un compte sur https://huggingface.co et acceptez les conditions sur la page du dataset\n"
+                "  2. Créez un jeton (Settings → Access Tokens) puis, dans le terminal :\n"
+                "       $env:HF_TOKEN = \"hf_xxx\"      (PowerShell)\n"
+                "  3. Relancez la commande.\n"
+                "  Ou choisissez un dataset public : python main.py download-data --list"
+            ) from None
+        raise
     written = n_docs = skipped = 0
     with out_path.open("w", encoding="utf-8") as f:
         for row in ds:
