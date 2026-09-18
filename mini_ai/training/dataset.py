@@ -90,15 +90,24 @@ def prepare_dataset(
         if verbose:
             print(f"[data] tokenizer sauvegardé : {tokenizer_path} ({tokenizer.vocab_size} tokens)")
 
-    # Mélange déterministe puis découpe train/val au niveau des documents.
+    # Mélange déterministe, puis découpe train/val par quantité de tokens
+    # (à la frontière des documents) : la validation reçoit ~val_ratio des
+    # tokens même si les documents ont des tailles très différentes.
     rng = np.random.default_rng(42)
     order = rng.permutation(len(docs))
-    n_val = max(1, int(len(docs) * val_ratio)) if len(docs) > 1 else 0
-    val_docs = [docs[i] for i in order[:n_val]]
-    train_docs = [docs[i] for i in order[n_val:]]
-
-    train_ids = encode_documents(train_docs, tokenizer)
-    val_ids = encode_documents(val_docs, tokenizer) if val_docs else train_ids[-max(1, len(train_ids) // 10) :]
+    encoded = [np.array(tokenizer.encode(docs[i], add_bos=True, add_eos=True), dtype=TOKEN_DTYPE) for i in order]
+    total = sum(len(e) for e in encoded)
+    target_val = int(total * val_ratio)
+    val_parts: list[np.ndarray] = []
+    val_count = 0
+    for e in encoded:
+        if val_count >= target_val or len(encoded) - len(val_parts) <= 1:
+            break
+        val_parts.append(e)
+        val_count += len(e)
+    train_parts = encoded[len(val_parts):]
+    train_ids = np.concatenate(train_parts) if train_parts else np.array([], dtype=TOKEN_DTYPE)
+    val_ids = np.concatenate(val_parts) if val_parts else train_ids[-max(1, len(train_ids) // 10) :]
 
     train_path = out_dir / "train.bin"
     val_path = out_dir / "validation.bin"

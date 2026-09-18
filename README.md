@@ -21,6 +21,7 @@ pip install -r requirements.txt  # torch + numpy (CPU suffit)
 
 ```bash
 python main.py params                      # nombre de paramètres par preset
+python main.py download-data --preset wiki-fr --max-chars 5000000   # corpus Hugging Face → data/raw/
 python main.py prepare-data                # data/raw/*.txt → tokenizer + train.bin / validation.bin
 python main.py train --max-steps 2000      # entraînement (checkpoints/best.pt, last.pt)
 python main.py train --dashboard           # idem, avec le tableau de bord ouvert dans le navigateur
@@ -38,6 +39,29 @@ python -m unittest discover -s tests       # 41 tests
 
 Pour un vrai entraînement, déposez davantage de texte (`.txt`, `.md`, `.py`) dans
 `data/raw/` : le corpus d'exemple (14 Ko) ne sert qu'à valider le pipeline.
+
+## Corpus Hugging Face
+
+`download-data` lit un jeu de données en **streaming** (`datasets`) et n'écrit que
+`--max-chars` caractères dans `data/raw/` — inutile de télécharger tout Wikipédia.
+
+```bash
+python main.py download-data --list                                   # presets disponibles
+python main.py download-data --preset wiki-fr --max-chars 5000000     # Wikipédia FR, ~5 Mo
+python main.py download-data --preset tinystories --max-chars 20000000
+python main.py download-data --dataset org/nom --config sous-ensemble --text-field texte
+python main.py prepare-data && python main.py train --dashboard
+```
+
+| Preset | Source | Pour quoi |
+|---|---|---|
+| `wiki-fr` / `wiki-en` | `wikimedia/wikipedia` | texte encyclopédique, factuel — bon pour les sondes |
+| `tinystories` | `roneneldan/TinyStories` | histoires simples en anglais ; le jeu de référence pour les modèles de 1–10M, donne les résultats les plus cohérents |
+| `french-books` | `PleIAs/French-PD-Books` | littérature française du domaine public |
+| `python-code` | `bigcode/the-stack-smol` | code Python |
+
+Après un nouveau `download-data`, relancez toujours `prepare-data` (le tokenizer
+est réappris) — un ancien `best.pt` n'est alors plus compatible.
 
 ## Structure
 

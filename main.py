@@ -53,6 +53,25 @@ def cmd_params(args) -> None:
               f"(hors positions : {model.num_parameters(non_embedding=True):,})  {cfg.to_dict()}")
 
 
+def cmd_download_data(args) -> None:
+    from mini_ai.training.download import PRESETS, download
+
+    if args.list:
+        for name, p in PRESETS.items():
+            print(f"{name:>14} : {p.dataset}" + (f" ({p.config})" if p.config else "") + f" — {p.description}")
+        return
+    preset = PRESETS.get(args.preset) if args.preset else None
+    dataset = args.dataset or (preset.dataset if preset else None)
+    if not dataset:
+        raise SystemExit("précisez --preset <nom> ou --dataset <org/nom>  (--list pour voir les presets)")
+    config = args.config if args.config is not None else (preset.config if preset else None)
+    text_field = args.text_field or (preset.text_field if preset else "text")
+    split = args.split or (preset.split if preset else "train")
+    filename = args.out or (preset.filename if preset else dataset.replace("/", "_") + ".txt")
+    out_path = Path(filename) if Path(filename).is_absolute() or "/" in filename or "\\" in filename else C.RAW_DIR / filename
+    download(dataset, out_path, config=config, split=split, text_field=text_field, max_chars=args.max_chars, max_docs=args.max_docs)
+
+
 def cmd_prepare_data(args) -> None:
     from mini_ai.training import prepare_dataset
 
@@ -201,6 +220,18 @@ def build_parser() -> argparse.ArgumentParser:
     sp = sub.add_parser("params", help="affiche le nombre de paramètres")
     sp.add_argument("--preset", default="all")
     sp.set_defaults(func=cmd_params)
+
+    sp = sub.add_parser("download-data", help="télécharge un corpus Hugging Face (streaming) dans data/raw/")
+    sp.add_argument("--preset", default=None, help="wiki-fr, wiki-en, tinystories, french-books, python-code")
+    sp.add_argument("--dataset", default=None, help="identifiant HF, ex: wikimedia/wikipedia")
+    sp.add_argument("--config", default=None, help="configuration/sous-ensemble, ex: 20231101.fr")
+    sp.add_argument("--split", default=None)
+    sp.add_argument("--text-field", default=None, help="colonne contenant le texte (défaut : text)")
+    sp.add_argument("--max-chars", type=int, default=5_000_000, help="taille max du corpus en caractères")
+    sp.add_argument("--max-docs", type=int, default=None)
+    sp.add_argument("--out", default=None, help="nom du fichier de sortie dans data/raw/")
+    sp.add_argument("--list", action="store_true", help="liste les presets")
+    sp.set_defaults(func=cmd_download_data)
 
     sp = sub.add_parser("prepare-data", help="nettoyage + tokenizer + train.bin/validation.bin")
     sp.add_argument("--raw", default=str(C.RAW_DIR))
