@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+checkpoints/*.pt
+checkpoints/*.tmp
+checkpoints/train_log.jsonl
+data/*.bin
+data/processed/
+data/memory.db
+data/workspace/

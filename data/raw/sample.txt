@@ -1,0 +1,165 @@
+Python est un langage de programmation interprété, multi-paradigme et multiplateforme. Il favorise la programmation impérative structurée, fonctionnelle et orientée objet. Python est doté d'un typage dynamique fort, d'une gestion automatique de la mémoire par ramasse-miettes et d'un système de gestion d'exceptions.
+
+Python est un langage qui peut s'utiliser dans de nombreux contextes et s'adapter à tout type d'utilisation grâce à des bibliothèques spécialisées. Il est particulièrement utilisé comme langage de script pour automatiser des tâches simples mais fastidieuses.
+
+Le langage Python est placé sous une licence libre proche de la licence BSD et fonctionne sur la plupart des plateformes informatiques, des smartphones aux ordinateurs centraux.
+
+Django est un cadre de développement web open source en Python. Il a pour but de rendre le développement web simple et rapide. Django utilise l'architecture MTV, pour Modèle, Template et Vue, une variante du motif MVC.
+
+Le modèle Django décrit la structure des données et fournit une couche d'abstraction de la base de données appelée ORM. Le template définit la présentation des données. La vue contient la logique qui relie le modèle au template.
+
+Une API Django s'appuie souvent sur Django REST Framework. Ce paquet fournit des sérialiseurs, des vues génériques, des routeurs et un système d'authentification. Une architecture d'API Django comprend généralement les applications, les modèles, les sérialiseurs, les vues, les URL et les tests.
+
+Pour construire une API Django, on commence par définir les modèles. Ensuite on écrit les sérialiseurs qui transforment les objets Python en JSON. Puis on crée les vues, souvent des ViewSets, et on les enregistre dans un routeur. Enfin on ajoute l'authentification, les permissions et la pagination.
+
+Une bonne architecture sépare les responsabilités. La couche de données gère la persistance. La couche métier contient les règles de l'application. La couche de présentation expose les données à l'utilisateur ou aux clients de l'API.
+
+Un Transformer est une architecture de réseau de neurones fondée sur le mécanisme d'attention. Le modèle GPT est un Transformer décodeur uniquement, entraîné à prédire le token suivant à partir des tokens précédents. On appelle cela la modélisation causale du langage.
+
+Le mécanisme d'attention calcule pour chaque token une pondération sur les autres tokens du contexte. Les requêtes, les clés et les valeurs sont obtenues par des projections linéaires. Le produit scalaire entre requêtes et clés est normalisé par un softmax, puis appliqué aux valeurs.
+
+Un tokenizer découpe le texte en unités appelées tokens. L'algorithme BPE, pour Byte Pair Encoding, fusionne itérativement les paires de symboles les plus fréquentes. Le vocabulaire final contient les octets de base et toutes les fusions apprises.
+
+Un agent est un programme qui perçoit son environnement, raisonne et agit pour atteindre un objectif. Dans un système multi-agent, plusieurs agents communiquent par messages et collaborent sur une tâche commune. Chaque agent possède un nom, un rôle et un objectif.
+
+Le manager coordonne les autres agents. Il analyse la tâche, la découpe en sous-tâches, délègue aux agents spécialisés, collecte les réponses puis produit la synthèse finale.
+
+Le développeur propose des solutions techniques. Il décrit l'architecture, les composants et les étapes de mise en œuvre. Le chercheur rassemble les informations disponibles dans son environnement. Le critique analyse les réponses et identifie les problèmes.
+
+La mémoire courte conserve l'historique récent de la conversation. La mémoire longue conserve les informations importantes de façon persistante, par exemple dans une base SQLite. Un bus de messages permet aux agents de s'envoyer des messages sans se connaître directement.
+
+Un message contient un expéditeur, un destinataire, un type, un contenu et un horodatage. Les types de messages sont la tâche, la réponse, l'information, la critique et le résultat final.
+
+Un outil est une fonction que l'agent peut appeler. La calculatrice évalue une expression arithmétique. L'outil Python exécute du code. L'outil de système de fichiers lit, liste et écrit des fichiers dans un dossier de travail.
+
+L'entraînement d'un modèle de langage consiste à minimiser l'entropie croisée entre la distribution prédite et le token réel. On charge un lot de données, on calcule la sortie du modèle, on calcule la perte, on rétropropage le gradient puis on met à jour les poids avec un optimiseur comme AdamW.
+
+La validation mesure la perte sur des données que le modèle n'a pas vues pendant l'entraînement. Si la perte de validation augmente alors que la perte d'entraînement diminue, le modèle est en surapprentissage. Les points de contrôle permettent de sauvegarder et de restaurer le modèle.
+
+La génération de texte échantillonne un token à la fois. La température contrôle l'aléa : une température basse rend la sortie plus déterministe. Le top-k limite le choix aux k tokens les plus probables. Le top-p garde les tokens dont la probabilité cumulée atteint p.
+
+Un modèle d'environ un million de paramètres ne peut pas rivaliser avec les grands modèles de langage. Il permet cependant de comprendre chaque brique : le tokenizer, les embeddings, l'attention, les blocs Transformer, la boucle d'entraînement et la génération.
+
+Le nombre de paramètres d'un Transformer dépend de la taille du vocabulaire, de la dimension des embeddings, du nombre de couches et du nombre de têtes d'attention. La matrice d'embedding compte vocabulaire fois dimension paramètres. Chaque bloc compte environ douze fois la dimension au carré.
+
+PyTorch est une bibliothèque d'apprentissage profond. Elle fournit des tenseurs, la différentiation automatique et des modules de réseaux de neurones. NumPy est une bibliothèque de calcul numérique qui fournit des tableaux multidimensionnels efficaces.
+
+SQLite est un moteur de base de données relationnelle léger, intégré dans un fichier unique. Il ne nécessite aucun serveur et convient parfaitement au stockage local de la mémoire des agents.
+
+Un test unitaire vérifie le comportement d'une petite unité de code, par exemple une fonction ou une classe. Les tests permettent de détecter les régressions et de documenter le comportement attendu.
+
+Pour créer une application web avec Django, on exécute la commande django-admin startproject, puis python manage.py startapp. On définit les modèles dans models.py, les vues dans views.py, les URL dans urls.py et les templates dans le dossier templates.
+
+Les migrations Django permettent de faire évoluer le schéma de la base de données. La commande makemigrations génère les migrations à partir des modèles, et la commande migrate les applique.
+
+Une API REST expose des ressources identifiées par des URL. Les méthodes HTTP GET, POST, PUT, PATCH et DELETE correspondent aux opérations de lecture, création, mise à jour et suppression. Les réponses sont généralement au format JSON.
+
+L'authentification vérifie l'identité de l'utilisateur. L'autorisation vérifie ses droits. Une API utilise souvent des jetons, par exemple JWT, pour authentifier les requêtes sans conserver de session côté serveur.
+
+FastAPI est un cadre web Python moderne et rapide, fondé sur les annotations de type. Il génère automatiquement la documentation OpenAPI. Il s'appuie sur Starlette pour la partie web et sur Pydantic pour la validation des données.
+
+Angular est un cadre de développement front-end écrit en TypeScript. Il structure l'application en composants, services et modules. Docker permet d'empaqueter une application et ses dépendances dans un conteneur portable.
+
+Redis est une base de données en mémoire, souvent utilisée comme cache ou comme file de messages. Un bus de messages distribué avec Redis permet à des agents s'exécutant sur des machines différentes de communiquer.
+
+Le mot Python vient du nom de la troupe comique Monty Python. Le créateur du langage est Guido van Rossum. La première version publique est sortie en 1991.
+
+Un dictionnaire Python associe des clés à des valeurs. Une liste est une séquence ordonnée et modifiable. Un tuple est une séquence ordonnée et immuable. Un ensemble est une collection non ordonnée d'éléments uniques.
+
+Une fonction Python se définit avec le mot-clé def. Une classe se définit avec le mot-clé class. Une méthode est une fonction définie dans une classe. Le premier paramètre d'une méthode d'instance est self.
+
+Les exceptions Python se gèrent avec try, except, else et finally. On lève une exception avec raise. Les exceptions courantes sont ValueError, TypeError, KeyError et IndexError.
+
+Une compréhension de liste construit une liste en une seule expression. Par exemple, la liste des carrés des entiers de zéro à neuf s'écrit avec une boucle for dans des crochets.
+
+Le module json permet de sérialiser des objets Python en JSON et de les désérialiser. Le module pathlib fournit une interface orientée objet pour manipuler les chemins de fichiers. Le module re fournit les expressions régulières.
+
+Un environnement virtuel isole les dépendances d'un projet. On le crée avec python -m venv, puis on l'active et on installe les paquets avec pip install.
+
+La complexité algorithmique décrit l'évolution du temps de calcul en fonction de la taille des données. Un tri par comparaison optimal est en n log n. Une recherche dans un dictionnaire est en temps constant en moyenne.
+
+Le principe de responsabilité unique dit qu'une classe ne doit avoir qu'une seule raison de changer. Le principe ouvert-fermé dit qu'une classe doit être ouverte à l'extension mais fermée à la modification.
+
+Un modèle de langage apprend la probabilité du token suivant sachant les tokens précédents. Plus le contexte est long, plus le modèle peut capturer des dépendances lointaines, mais plus le calcul de l'attention est coûteux.
+
+La normalisation par couche stabilise l'entraînement en normalisant les activations. La fonction d'activation GELU est utilisée dans les blocs MLP des Transformers. Le dropout désactive aléatoirement des neurones pendant l'entraînement pour limiter le surapprentissage.
+
+L'encodage positionnel indique au modèle la position de chaque token, car l'attention seule est invariante à l'ordre. Les embeddings de position appris et les embeddings rotatifs RoPE sont deux approches courantes.
+
+Un point de contrôle contient les poids du modèle, l'état de l'optimiseur, le numéro d'étape et la configuration. Il permet de reprendre un entraînement interrompu et de charger le modèle pour l'inférence.
+
+Le taux d'apprentissage contrôle la taille des pas de l'optimiseur. Un échauffement progressif puis une décroissance en cosinus donnent généralement de bons résultats. Le clipping du gradient évite les explosions de gradient.
+
+Le chercheur commence par consulter sa mémoire longue et le dossier de travail. S'il trouve des faits pertinents, il les résume. Sinon il indique qu'aucune information n'est disponible.
+
+Le critique vérifie que la réponse n'est pas vide, qu'elle n'est pas trop courte, qu'elle n'est pas répétitive et qu'aucun outil n'a échoué. Il attribue un score et propose une amélioration.
+
+Le manager produit la réponse finale à partir des réponses reçues. Il rappelle la tâche, présente la proposition du développeur, ajoute la critique et conclut.
+
+Pour une API Django, le développeur propose une application par domaine métier, des modèles clairs, des sérialiseurs dédiés, des vues basées sur des ViewSets, un routeur, une authentification par jeton et des tests pour chaque point d'entrée.
+
+Le critique remarque que la proposition ne mentionne ni la pagination, ni la gestion des versions de l'API, ni la documentation. Il recommande d'ajouter ces éléments et de prévoir une stratégie de cache.
+
+Le chercheur rappelle que Django utilise l'architecture MTV et que Django REST Framework fournit les briques nécessaires pour construire une API. Il souligne l'importance des migrations et des tests.
+
+Le manager conclut que l'architecture proposée est solide, qu'elle doit être complétée par la pagination, le versionnage et la documentation, et que les tests doivent couvrir chaque point d'entrée.
+
+La communication entre agents passe par le bus de messages. L'agent A envoie un message à l'agent B. L'agent B traite le message et répond. L'agent A reçoit la réponse. L'historique des messages est conservé.
+
+Plusieurs agents peuvent participer à une même tâche. Le manager délègue une sous-tâche à chaque agent, attend les réponses, puis demande une critique. La synthèse finale est produite à partir de l'ensemble des contributions.
+
+Le projet doit fonctionner localement, avec une priorité donnée à la simplicité. La pile technique est Python, PyTorch, NumPy et SQLite. L'interface web n'est pas prioritaire.
+
+Le projet progresse dans cet ordre : modèle, inférence, agent, mémoire, communication, multi-agent, outils, orchestration. On ne cherche pas à résoudre l'intelligence multi-agent avant d'avoir un modèle de base que l'on comprend entièrement.
+
+def add(a, b):
+    return a + b
+
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+class Agent:
+    def __init__(self, name, role, goal):
+        self.name = name
+        self.role = role
+        self.goal = goal
+
+    def act(self, task):
+        return self.model.generate(task)
+
+class Message:
+    def __init__(self, sender, receiver, content):
+        self.sender = sender
+        self.receiver = receiver
+        self.content = content
+
+for i in range(10):
+    print(i * i)
+
+squares = [x * x for x in range(10)]
+total = sum(squares)
+print(total)
+
+import torch
+import torch.nn as nn
+
+class MLP(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.fc = nn.Linear(dim, 4 * dim)
+        self.proj = nn.Linear(4 * dim, dim)
+
+    def forward(self, x):
+        return self.proj(torch.nn.functional.gelu(self.fc(x)))
+
+Le bonjour du matin ouvre la journée. Bonjour le monde est souvent le premier programme écrit dans un nouveau langage. En Python, il s'écrit print suivi de la chaîne Bonjour le monde entre parenthèses.
+
+Bonjour, je suis un agent. Mon rôle est de développer des solutions techniques. Mon objectif est de résoudre les problèmes. Je communique avec les autres agents grâce au bus de messages.
+
+Bonjour, je suis le manager. Je coordonne les agents. Je délègue les tâches, je collecte les réponses et je produis la synthèse finale.
+
+Bonjour, je suis le critique. J'analyse les propositions et j'identifie les problèmes. Je propose des améliorations.
+
+Bonjour, je suis le chercheur. Je rassemble les informations utiles disponibles dans mon environnement et je les synthétise.
