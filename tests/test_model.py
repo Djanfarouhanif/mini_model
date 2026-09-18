@@ -1,3 +1,4 @@
+import math
 import tempfile
 import unittest
 from pathlib import Path
@@ -5,10 +6,11 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from mini_ai.dashboard import read_log
 from mini_ai.model import GPT, GPTConfig, count_parameters
 from mini_ai.model.config import PRESETS
 from mini_ai.tokenizer import Tokenizer
-from mini_ai.training import TokenDataset, TrainConfig, Trainer, load_model, save_checkpoint
+from mini_ai.training import Probe, TokenDataset, TrainConfig, Trainer, load_model, save_checkpoint
 from mini_ai.inference import TextGenerator
 
 TINY = PRESETS["tiny"]
@@ -90,13 +92,46 @@ class TestTraining(unittest.TestCase):
             cfg = TrainConfig(max_steps=40, batch_size=8, eval_interval=20, eval_iters=2, log_interval=100, warmup_steps=5, checkpoint_dir=str(d / "ckpt"))
             with TokenDataset(d / "train.bin", d / "val.bin", block_size=TINY.block_size) as ds:
                 trainer = Trainer(model, ds, cfg)
-                before = trainer.estimate_loss()["train"]
+                before = trainer.estimate_loss()
                 state = trainer.train()
-                after = trainer.estimate_loss()["train"]
-            self.assertLess(after, before)
+                after = trainer.estimate_loss()
+            self.assertLess(after["train"], before["train"])
+            self.assertGreater(after["val_accuracy"], before["val_accuracy"])
+            self.assertAlmostEqual(after["val_perplexity"], math.exp(after["val"]), places=3)
             self.assertEqual(state.step, 40)
             self.assertTrue((d / "ckpt" / "best.pt").exists())
             self.assertTrue((d / "ckpt" / "last.pt").exists())
+            # Le log contient run_start, des évals avec les métriques, run_end.
+            records = read_log(d / "ckpt" / "train_log.jsonl")
+            types = [r["type"] for r in records]
+            self.assertEqual(types[0], "run_start")
+            self.assertEqual(types[-1], "run_end")
+            evals = [r for r in records if r["type"] == "eval"]
+            self.assertEqual(len(evals), 3)  # steps 0, 20, 39
+            for key in ("val_loss", "val_perplexity", "val_accuracy", "probe_score", "sample", "lr"):
+                self.assertIn(key, evals[0])
+
+    def test_probes_and_samples_with_tokenizer(self):
+        corpus = ["Django utilise l'architecture MTV. Python est un langage de programmation."] * 40
+        tok = Tokenizer.train(corpus, vocab_size=320)
+        ids = np.array(sum((tok.encode(t, add_eos=True) for t in corpus), []), dtype=np.uint16)
+        cfg_model = GPTConfig(vocab_size=320, block_size=32, n_layer=2, n_head=2, n_embd=32, dropout=0.0)
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            ids.tofile(d / "train.bin")
+            ids[:200].tofile(d / "val.bin")
+            probes = [Probe("Django utilise l'architecture", "MTV"), Probe("Python est un langage de", "programmation")]
+            cfg = TrainConfig(max_steps=150, batch_size=8, eval_interval=75, eval_iters=2, log_interval=1000, warmup_steps=10,
+                              learning_rate=3e-3, checkpoint_dir=str(d / "ckpt"), sample_prompt="Django", sample_tokens=8)
+            with TokenDataset(d / "train.bin", d / "val.bin", block_size=32) as ds:
+                trainer = Trainer(GPT(cfg_model), ds, cfg, tokenizer=tok, probes=probes)
+                trainer.train()
+            evals = [r for r in read_log(d / "ckpt" / "train_log.jsonl") if r["type"] == "eval"]
+        self.assertEqual(len(evals[0]["probes"]), 2)
+        self.assertIsInstance(evals[-1]["sample"], str)
+        # Sur un corpus aussi répétitif, les sondes doivent finir par réussir.
+        self.assertGreaterEqual(evals[-1]["probe_score"], evals[0]["probe_score"])
+        self.assertEqual(evals[-1]["probe_score"], 1.0)
 
 
 class TestTextGenerator(unittest.TestCase):

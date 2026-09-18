@@ -1,0 +1,14 @@
+[
+  {"prompt": "Django utilise l'architecture", "expected": "MTV"},
+  {"prompt": "Le créateur du langage est", "expected": "Guido van Rossum"},
+  {"prompt": "Python est un langage de", "expected": "programmation"},
+  {"prompt": "Le manager coordonne les", "expected": "agents"},
+  {"prompt": "Le mot Python vient du nom de la troupe comique", "expected": "Monty Python"},
+  {"prompt": "SQLite est un moteur de base de données", "expected": "relationnelle"},
+  {"prompt": "La première version publique est sortie en", "expected": "1991"},
+  {"prompt": "L'algorithme BPE, pour Byte Pair", "expected": "Encoding"},
+  {"prompt": "Le critique analyse les réponses et identifie les", "expected": "problèmes"},
+  {"prompt": "Le modèle GPT est un Transformer", "expected": "décodeur"},
+  {"prompt": "La température contrôle", "expected": "l'aléa"},
+  {"prompt": "Un environnement virtuel isole les", "expected": "dépendances"}
+]

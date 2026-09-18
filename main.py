@@ -63,9 +63,14 @@ def cmd_train(args) -> None:
     from mini_ai.model import GPT, GPTConfig
     from mini_ai.model.config import PRESETS
     from mini_ai.tokenizer import Tokenizer
-    from mini_ai.training import TokenDataset, TrainConfig, Trainer, load_checkpoint
+    from mini_ai.training import Probe, TokenDataset, TrainConfig, Trainer, load_checkpoint
 
     device = _device(args.device)
+    log_path = Path(args.checkpoint_dir) / "train_log.jsonl"
+    if args.dashboard:
+        from mini_ai.dashboard import start_in_background
+
+        start_in_background(log_path, port=args.port)
     tokenizer = Tokenizer.load(args.tokenizer)
     cfg = PRESETS[args.preset]
     overrides = {k: getattr(args, k) for k in ("n_layer", "n_head", "n_embd", "block_size", "dropout", "pos_type") if getattr(args, k) is not None}
@@ -99,18 +104,34 @@ def cmd_train(args) -> None:
         checkpoint_dir=args.checkpoint_dir,
         device=device,
         grad_accum_steps=args.grad_accum,
+        sample_prompt=args.sample,
+        sample_tokens=args.sample_tokens,
+        run_name=args.run_name or "",
     )
-    trainer = Trainer(model, dataset, tc)
+    probes = Probe.load(args.probes) if args.probes and Path(args.probes).exists() else []
+    if probes:
+        print(f"[train] {len(probes)} sondes chargées depuis {args.probes}")
+    trainer = Trainer(model, dataset, tc, tokenizer=tokenizer, probes=probes)
     if resume:
         trainer.load_state(resume)
     state = trainer.train()
     print(f"[train] terminé : step {state.step}, meilleure val loss {state.best_val_loss:.4f}")
+    print(f"[train] visualiser : python main.py dashboard  (log : {log_path})")
+    if args.dashboard:
+        print("[dashboard] serveur toujours actif — Ctrl+C pour quitter")
+        try:
+            import time
 
-    if args.sample:
-        from mini_ai.inference import TextGenerator
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pass
 
-        gen = TextGenerator(model, tokenizer, device)
-        print("\n[sample]", repr(gen.complete(args.sample, max_tokens=60, temperature=0.8, top_k=40)))
+
+def cmd_dashboard(args) -> None:
+    from mini_ai.dashboard import serve
+
+    serve(args.log, port=args.port, open_browser=not args.no_browser)
 
 
 def cmd_generate(args) -> None:
@@ -208,10 +229,21 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--eval-interval", type=int, default=200)
     sp.add_argument("--eval-iters", type=int, default=20)
     sp.add_argument("--log-interval", type=int, default=20)
-    sp.add_argument("--sample", default="Python est", help="prompt d'exemple généré en fin d'entraînement ('' pour désactiver)")
+    sp.add_argument("--sample", default="Python est", help="prompt généré à chaque évaluation ('' pour désactiver)")
+    sp.add_argument("--sample-tokens", type=int, default=40)
+    sp.add_argument("--probes", default=str(C.DATA_DIR / "probes.json"), help="fichier JSON de questions à trous ('' pour désactiver)")
+    sp.add_argument("--run-name", default=None, help="nom du run dans le log (défaut : horodatage)")
+    sp.add_argument("--dashboard", action="store_true", help="ouvre le tableau de bord pendant l'entraînement")
+    sp.add_argument("--port", type=int, default=8765)
     for name, typ in (("n_layer", int), ("n_head", int), ("n_embd", int), ("block_size", int), ("dropout", float), ("pos_type", str)):
         sp.add_argument(f"--{name.replace('_', '-')}", dest=name, type=typ, default=None)
     sp.set_defaults(func=cmd_train)
+
+    sp = sub.add_parser("dashboard", help="tableau de bord d'entraînement (loss, perplexité, précision, sondes, échantillons)")
+    sp.add_argument("--log", default=str(C.CHECKPOINT_DIR / "train_log.jsonl"))
+    sp.add_argument("--port", type=int, default=8765)
+    sp.add_argument("--no-browser", action="store_true")
+    sp.set_defaults(func=cmd_dashboard)
 
     sp = sub.add_parser("generate", help="génère du texte")
     add_model_args(sp)

@@ -1,0 +1,63 @@
+[train] modèle : 1,089,024 paramètres  {'vocab_size': 4096, 'block_size': 256, 'n_layer': 6, 'n_head': 4, 'n_embd': 96, 'dropout': 0.1, 'bias': True, 'tie_weights': True, 'pos_type': 'learned', 'mlp_ratio': 4}
+[train] train 3,643 tokens / val 389 tokens  device=cpu
+[train] 12 sondes chargées depuis C:\Users\LENOVO\Desktop\my-model\data\probes.json
+[eval] step      0  train 8.3362  val 8.3369  ppl 4175.3  acc 0.0%  sondes 0%  lr 3.33e-05
+       sample: 'Python est' -> ' tokenizer mé f définit courantes� La tests po�agent� modules'
+[train] step      0  loss 8.3406  lr 3.33e-05  (145 ms/step)
+[train] step     10  loss 7.9787  lr 3.67e-04  (514 ms/step)
+[train] step     20  loss 7.3828  lr 7.00e-04  (496 ms/step)
+[train] step     30  loss 6.5997  lr 1.00e-03  (487 ms/step)
+[train] step     40  loss 5.9946  lr 9.98e-04  (787 ms/step)
+[eval] step     50  train 5.5966  val 6.1888  ppl 487.3  acc 10.9%  sondes 0%  lr 9.94e-04
+       sample: 'Python est' -> " des le, dans.t. les agents est( le une -agent ladf dans d(e deLeUn la. On l un de est on par l'in les pour"
+[train] step     50  loss 5.6136  lr 9.94e-04  (1788 ms/step)
+[train] step     60  loss 5.2553  lr 9.85e-04  (1325 ms/step)
+[train] step     70  loss 4.9195  lr 9.74e-04  (1312 ms/step)
+[train] step     80  loss 4.5796  lr 9.60e-04  (1213 ms/step)
+[train] step     90  loss 4.2755  lr 9.43e-04  (1249 ms/step)
+[eval] step    100  train 3.8988  val 5.7057  ppl 300.6  acc 14.0%  sondes 0%  lr 9.23e-04
+       sample: 'Python est' -> " les paorarchitecture a Pythonfv de la'ex\nself."
+[train] step    100  loss 3.9667  lr 9.23e-04  (1505 ms/step)
+[train] step    110  loss 3.8059  lr 9.00e-04  (2094 ms/step)
+[train] step    120  loss 3.5332  lr 8.75e-04  (1225 ms/step)
+[train] step    130  loss 3.3954  lr 8.47e-04  (1283 ms/step)
+[train] step    140  loss 3.1979  lr 8.18e-04  (1035 ms/step)
+[eval] step    150  train 2.7879  val 5.9042  ppl 366.6  acc 13.3%  sondes 8%  lr 7.86e-04
+       sample: 'Python est' -> " un contexte. S'orent web n'elle(self, son environnement, un kit, les les URL et les informations Ke. Une(are les les ré"
+[train] step    150  loss 2.9735  lr 7.86e-04  (1274 ms/step)
+[train] step    160  loss 2.7347  lr 7.53e-04  (1027 ms/step)
+[train] step    170  loss 2.6366  lr 7.18e-04  (1124 ms/step)
+[train] step    180  loss 2.5064  lr 6.82e-04  (1031 ms/step)
+[train] step    190  loss 2.3550  lr 6.45e-04  (1000 ms/step)
+[eval] step    200  train 2.0655  val 6.2861  ppl 537.1  acc 11.8%  sondes 0%  lr 6.07e-04
+       sample: 'Python est' -> " un cadre de paramètres l'appuie souvent sur Puis la dimension Django utilise l'in un machpe et la réponse."
+[train] step    200  loss 2.4125  lr 6.07e-04  (1485 ms/step)
+[train] step    210  loss 2.1580  lr 5.69e-04  (1112 ms/step)
+[train] step    220  loss 2.1926  lr 5.31e-04  (1008 ms/step)
+[train] step    230  loss 2.0959  lr 4.93e-04  (1169 ms/step)
+[train] step    240  loss 1.8625  lr 4.55e-04  (1180 ms/step)
+[eval] step    250  train 1.6085  val 6.6155  ppl 746.6  acc 10.9%  sondes 8%  lr 4.18e-04
+       sample: 'Python est' -> " le choices init(self, on on ajoute l'adapes un typetident aux de données en JSON. On plus le manager délègue les dépend"
+[train] step    250  loss 1.8599  lr 4.18e-04  (1359 ms/step)
+[train] step    260  loss 1.7184  lr 3.82e-04  (1009 ms/step)
+[train] step    270  loss 1.6741  lr 3.47e-04  (1065 ms/step)
+[train] step    280  loss 1.7605  lr 3.14e-04  (1143 ms/step)
+[train] step    290  loss 1.6034  lr 2.82e-04  (1174 ms/step)
+[eval] step    300  train 1.3159  val 6.7867  ppl 886.0  acc 11.3%  sondes 17%  lr 2.53e-04
+       sample: 'Python est' -> " un dossier de présentation des modèles, Keurndextes et Inonne architecture d'application. La couche de chooix * x)"
+[train] step    300  loss 1.5150  lr 2.53e-04  (1388 ms/step)
+[train] step    310  loss 1.5106  lr 2.25e-04  (1151 ms/step)
+[train] step    320  loss 1.5671  lr 2.00e-04  (1060 ms/step)
+[train] step    330  loss 1.4660  lr 1.77e-04  (1098 ms/step)
+[train] step    340  loss 1.4743  lr 1.57e-04  (1124 ms/step)
+[eval] step    350  train 1.1355  val 6.9349  ppl 1027.5  acc 10.7%  sondes 17%  lr 1.40e-04
+       sample: 'Python est' -> " un langage de symboles les plus le dossier de la tâche, fusions aux  factorial(print(i de sy Python entidrété d'apprent"
+[train] step    350  loss 1.4042  lr 1.40e-04  (1392 ms/step)
+[train] step    360  loss 1.3520  lr 1.26e-04  (1133 ms/step)
+[train] step    370  loss 1.3495  lr 1.15e-04  (1156 ms/step)
+[train] step    380  loss 1.4119  lr 1.06e-04  (1041 ms/step)
+[train] step    390  loss 1.3432  lr 1.02e-04  (988 ms/step)
+[eval] step    399  train 1.0257  val 6.9922  ppl 1088.2  acc 11.0%  sondes 17%  lr 1.00e-04
+       sample: 'Python est' -> " un système de développement fré dans un langage de langage. Il analyse la base de version p. Django utilise l'authentif"
+[train] terminé : step 400, meilleure val loss 5.7057
+[train] visualiser : python main.py dashboard  (log : C:\Users\LENOVO\Desktop\my-model\checkpoints\train_log.jsonl)

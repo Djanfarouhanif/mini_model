@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MiniAI — Entraînement</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1c1f26; --muted: #6b7280; --line: #e5e7eb;
+    --grid: #eef0f3; --accent: #2563eb; --train: #9ca3af; --val: #dc2626; --ppl: #7c3aed;
+    --acc: #059669; --probe: #d97706; --lr: #0891b2; --good: #059669; --bad: #dc2626; --warn: #d97706;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1115; --card: #171a21; --ink: #e5e7eb; --muted: #9ca3af; --line: #262a33; --grid: #1f232b; --train: #6b7280; color-scheme: dark; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 20px 16px 48px; }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  h1 { font-size: 20px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+  h1 small { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  select, button { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+  button { cursor: pointer; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--grid); color: var(--muted); }
+  .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .pill.live { color: var(--good); }
+  .pill.done { color: var(--accent); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .tile .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .tile .v { font-size: 24px; font-weight: 650; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .tile .d { font-size: 12px; margin-top: 2px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .d.good { color: var(--good); } .d.bad { color: var(--bad); }
+  .verdict { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; }
+  .verdict.good { border-left-color: var(--good); } .verdict.bad { border-left-color: var(--bad); } .verdict.warn { border-left-color: var(--warn); }
+  .verdict b { display: block; margin-bottom: 4px; }
+  .verdict ul { margin: 4px 0 0 18px; padding: 0; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+  .card h2 { font-size: 14px; margin: 0 0 4px; font-weight: 650; }
+  .card p.sub { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
+  svg { width: 100%; height: 220px; display: block; overflow: visible; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .legend span::before { content: ""; display: inline-block; width: 14px; height: 3px; border-radius: 2px; background: var(--c); margin-right: 6px; vertical-align: middle; }
+  .tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); padding: 6px 9px; border-radius: 8px; font-size: 12px; white-space: nowrap; display: none; z-index: 9; font-variant-numeric: tabular-nums; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  td.ok { color: var(--good); font-weight: 700; } td.ko { color: var(--bad); font-weight: 700; }
+  td.out { color: var(--muted); font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+  .samples { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow: auto; }
+  .sample { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  .sample .s { color: var(--muted); font-size: 12px; margin-bottom: 3px; display: flex; justify-content: space-between; }
+  .sample .t { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; white-space: pre-wrap; word-break: break-word; }
+  .sample .t .p { color: var(--accent); }
+  .empty { color: var(--muted); padding: 24px; text-align: center; }
+  .meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>MiniAI — Entraînement <small id="meta"></small></h1>
+    <div class="controls">
+      <span class="pill" id="status">en attente</span>
+      <select id="run"></select>
+      <label><input type="checkbox" id="auto" checked> auto-refresh</label>
+      <button id="refresh">Rafraîchir</button>
+    </div>
+  </header>
+
+  <div id="content"><div class="empty">Aucune donnée : lancez <code>python main.py train</code>.</div></div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const fmt = (v, d = 3) => (v == null || Number.isNaN(v)) ? "—" : Number(v).toFixed(d);
+const pct = v => v == null ? "—" : (v * 100).toFixed(1) + " %";
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let all = [], currentRun = null;
+
+// ------------------------------------------------------------ chargement
+async function load() {
+  try {
+    const r = await fetch("/api/log", { cache: "no-store" });
+    all = await r.json();
+  } catch (e) { all = []; }
+  const runs = [...new Set(all.map(r => r.run).filter(Boolean))];
+  const sel = $("#run");
+  const prev = sel.value;
+  sel.innerHTML = runs.map(r => `<option value="${r}">${r}</option>`).join("");
+  if (runs.length === 0) { $("#content").innerHTML = '<div class="empty">Aucune donnée : lancez <code>python main.py train</code>.</div>'; return; }
+  currentRun = runs.includes(prev) && prev ? prev : runs[runs.length - 1];
+  sel.value = currentRun;
+  render(all.filter(r => r.run === currentRun));
+}
+
+// ---------------------------------------------------------------- rendu
+function render(recs) {
+  const evals = recs.filter(r => r.type === "eval");
+  const trains = recs.filter(r => r.type === "train");
+  const start = recs.find(r => r.type === "run_start");
+  const end = recs.find(r => r.type === "run_end");
+  const last = evals[evals.length - 1], first = evals[0];
+  const lastRec = recs[recs.length - 1];
+  const stale = lastRec && (Date.now() / 1000 - lastRec.time) > 120;
+  const st = $("#status");
+  st.className = "pill " + (end ? "done" : (stale ? "" : "live"));
+  st.textContent = end ? "terminé" : (stale ? "inactif" : "en cours");
+  if (start) {
+    const mc = start.model_config || {};
+    $("#meta").textContent = `${(start.parameters || 0).toLocaleString("fr-FR")} paramètres · ${mc.n_layer}×${mc.n_embd}d · ctx ${mc.block_size} · ${(start.train_tokens || 0).toLocaleString("fr-FR")} tokens`;
+  }
+  if (!last) { $("#content").innerHTML = '<div class="empty">Pas encore d\'évaluation pour ce run.</div>'; return; }
+
+  const delta = (a, b, lowerBetter, f) => {
+    if (a == null || b == null) return "";
+    const d = b - a, good = lowerBetter ? d < 0 : d > 0;
+    return `<div class="d ${good ? "good" : (d === 0 ? "" : "bad")}">${d > 0 ? "▲" : "▼"} ${f(Math.abs(d))} depuis le début</div>`;
+  };
+  const best = Math.min(...evals.map(e => e.val_loss));
+  const tiles = [
+    ["Étape", `${last.step}${start ? " / " + start.train_config.max_steps : ""}`, ""],
+    ["Val loss", fmt(last.val_loss), delta(first.val_loss, last.val_loss, true, v => fmt(v)) + `<div class="d">meilleure ${fmt(best)}</div>`],
+    ["Train loss", fmt(last.train_loss), delta(first.train_loss, last.train_loss, true, v => fmt(v))],
+    ["Perplexité val", fmt(last.val_perplexity, 1), delta(first.val_perplexity, last.val_perplexity, true, v => fmt(v, 1))],
+    ["Précision token", pct(last.val_accuracy), delta(first.val_accuracy, last.val_accuracy, false, v => pct(v))],
+    ["Sondes réussies", last.probe_score == null ? "—" : pct(last.probe_score), delta(first.probe_score, last.probe_score, false, v => pct(v))],
+  ];
+
+  $("#content").innerHTML = `
+    <div class="tiles">${tiles.map(([k, v, d]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div>${d}</div>`).join("")}</div>
+    <div class="verdict" id="verdict"></div>
+    <div class="grid">
+      <div class="card"><h2>Loss</h2><p class="sub">Entropie croisée — plus c'est bas, mieux le modèle prédit le token suivant.</p><svg id="c-loss"></svg><div class="legend" id="l-loss"></div></div>
+      <div class="card"><h2>Perplexité (validation)</h2><p class="sub">exp(val loss) : « entre combien de tokens le modèle hésite ». Échelle log.</p><svg id="c-ppl"></svg><div class="legend" id="l-ppl"></div></div>
+      <div class="card"><h2>Précision & sondes</h2><p class="sub">% de tokens de validation devinés, et % de questions à trous complétées.</p><svg id="c-acc"></svg><div class="legend" id="l-acc"></div></div>
+      <div class="card"><h2>Taux d'apprentissage</h2><p class="sub">Warmup puis décroissance cosinus.</p><svg id="c-lr"></svg><div class="legend" id="l-lr"></div></div>
+    </div>
+    <div class="grid">
+      <div class="card"><h2>Sondes — dernière évaluation (étape ${last.step})</h2><p class="sub">Complétion gloutonne (température 0). Réussi si le texte attendu apparaît.</p>${probesTable(last)}</div>
+      <div class="card"><h2>Échantillons générés</h2><p class="sub">Même prompt à chaque évaluation — le texte devient-il plus cohérent ?</p><div class="samples">${samples(evals, start)}</div></div>
+    </div>`;
+
+  verdict(evals, trains);
+
+  const C = { train: css("--train"), val: css("--val"), ppl: css("--ppl"), acc: css("--acc"), probe: css("--probe"), lr: css("--lr"), accent: css("--accent") };
+  chart("#c-loss", "#l-loss", [
+    { label: "train (par pas)", color: C.train, thin: true, data: trains.map(t => ({ x: t.step, y: t.loss })) },
+    { label: "train (éval)", color: C.accent, data: evals.map(e => ({ x: e.step, y: e.train_loss })) },
+    { label: "validation", color: C.val, data: evals.map(e => ({ x: e.step, y: e.val_loss })) },
+  ], { yFmt: v => fmt(v, 2), yMin: 0 });
+  chart("#c-ppl", "#l-ppl", [{ label: "perplexité val", color: C.ppl, data: evals.map(e => ({ x: e.step, y: e.val_perplexity })) }], { log: true, yFmt: v => fmt(v, 0) });
+  const accS = [{ label: "précision token", color: C.acc, data: evals.map(e => ({ x: e.step, y: e.val_accuracy * 100 })) }];
+  if (evals.some(e => e.probe_score != null)) accS.push({ label: "sondes", color: C.probe, data: evals.filter(e => e.probe_score != null).map(e => ({ x: e.step, y: e.probe_score * 100 })) });
+  chart("#c-acc", "#l-acc", accS, { yMin: 0, yMax: 100, yFmt: v => fmt(v, 0) + " %" });
+  chart("#c-lr", "#l-lr", [{ label: "lr", color: C.lr, data: trains.map(t => ({ x: t.step, y: t.lr })) }], { yFmt: v => Number(v).toExponential(1), yMin: 0 });
+}
+
+function probesTable(e) {
+  if (!e.probes || !e.probes.length) return '<div class="empty">Aucune sonde (voir data/probes.json).</div>';
+  return `<table><thead><tr><th>Prompt</th><th>Attendu</th><th>Obtenu</th><th></th></tr></thead><tbody>${
+    e.probes.map(p => `<tr><td>${esc(p.prompt)}</td><td>${esc(p.expected)}</td><td class="out">${esc(p.output)}</td><td class="${p.ok ? "ok" : "ko"}">${p.ok ? "✓" : "✗"}</td></tr>`).join("")}</tbody></table>`;
+}
+
+function samples(evals, start) {
+  const prompt = start ? start.train_config.sample_prompt : "";
+  const rows = evals.filter(e => e.sample != null).slice().reverse();
+  if (!rows.length) return '<div class="empty">Aucun échantillon (prompt vide).</div>';
+  return rows.map(e => `<div class="sample"><div class="s"><span>étape ${e.step}</span><span>val ${fmt(e.val_loss, 2)}</span></div><div class="t"><span class="p">${esc(prompt)}</span>${esc(e.sample)}</div></div>`).join("");
+}
+
+// -------------------------------------------------------------- verdict
+function verdict(evals, trains) {
+  const el = $("#verdict");
+  if (evals.length < 2) { el.className = "verdict"; el.innerHTML = "<b>Le modèle apprend-il ?</b>Attendez au moins deux évaluations."; return; }
+  const f = evals[0], l = evals[evals.length - 1];
+  const notes = [], flags = { good: 0, bad: 0 };
+  const rel = (a, b) => (b - a) / Math.max(1e-9, Math.abs(a));
+  const dv = rel(f.val_loss, l.val_loss);
+  if (dv < -0.05) { notes.push(`la val loss a baissé de ${(-dv * 100).toFixed(0)} % (${fmt(f.val_loss, 2)} → ${fmt(l.val_loss, 2)})`); flags.good++; }
+  else if (dv > 0.05) { notes.push(`la val loss a augmenté (${fmt(f.val_loss, 2)} → ${fmt(l.val_loss, 2)})`); flags.bad++; }
+  else notes.push("la val loss est stable");
+  const da = (l.val_accuracy - f.val_accuracy) * 100;
+  if (da > 1) { notes.push(`précision token +${da.toFixed(1)} pts (${pct(l.val_accuracy)})`); flags.good++; }
+  else if (da < -1) { notes.push(`précision token ${da.toFixed(1)} pts`); flags.bad++; }
+  if (l.probe_score != null && f.probe_score != null) {
+    const dp = (l.probe_score - f.probe_score) * 100;
+    if (dp > 0) { notes.push(`sondes +${dp.toFixed(0)} pts (${pct(l.probe_score)})`); flags.good++; }
+    else if (dp < 0) { notes.push(`sondes ${dp.toFixed(0)} pts`); flags.bad++; }
+    else notes.push(`sondes inchangées (${pct(l.probe_score)})`);
+  }
+  // Surapprentissage : val remonte sur les 3 dernières évals alors que train descend.
+  const tail = evals.slice(-3);
+  let over = false;
+  if (tail.length === 3) {
+    const vUp = tail[2].val_loss > tail[0].val_loss + 0.02, tDown = tail[2].train_loss < tail[0].train_loss - 0.02;
+    over = vUp && tDown;
+  }
+  const gap = l.val_loss - l.train_loss;
+  if (over) notes.push(`surapprentissage : la validation remonte alors que le train descend (écart ${fmt(gap, 2)}) — plus de données ou moins d'étapes`);
+  else if (gap > 1.5) notes.push(`écart train/val important (${fmt(gap, 2)}) : le modèle mémorise le corpus, il lui faut plus de données`);
+  const bestIdx = evals.reduce((b, e, i) => e.val_loss < evals[b].val_loss ? i : b, 0);
+  if (bestIdx < evals.length - 1) notes.push(`meilleur checkpoint à l'étape ${evals[bestIdx].step} (val ${fmt(evals[bestIdx].val_loss, 2)}) — c'est lui qui est dans best.pt`);
+
+  let cls = "warn", title = "Progrès mitigés";
+  if (over) { cls = "warn"; title = "Le modèle apprend le corpus par cœur mais ne généralise plus"; }
+  else if (flags.good >= 2 && flags.bad === 0) { cls = "good"; title = "Oui — le modèle progresse"; }
+  else if (flags.bad >= 2) { cls = "bad"; title = "Non — le modèle régresse"; }
+  else if (flags.good >= 1 && flags.bad === 0) { cls = "good"; title = "Le modèle progresse (lentement)"; }
+  el.className = "verdict " + cls;
+  el.innerHTML = `<b>Le modèle apprend-il ? ${title}</b><ul>${notes.map(n => `<li>${n}</li>`).join("")}</ul>`;
+}
+
+// ---------------------------------------------------------------- charts
+function chart(sel, legendSel, series, o = {}) {
+  const svg = $(sel); if (!svg) return;
+  series = series.filter(s => s.data.length);
+  const W = svg.clientWidth || 500, H = 220, m = { t: 10, r: 12, b: 28, l: 52 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  if (!series.length) { svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" fill="${css("--muted")}" font-size="12">pas de données</text>`; return; }
+  const pts = series.flatMap(s => s.data).filter(p => Number.isFinite(p.y) && (!o.log || p.y > 0));
+  const xs = pts.map(p => p.x), ys = pts.map(p => o.log ? Math.log10(p.y) : p.y);
+  let x0 = Math.min(...xs), x1 = Math.max(...xs); if (x1 === x0) x1 = x0 + 1;
+  let y0 = o.yMin != null && !o.log ? o.yMin : Math.min(...ys), y1 = o.yMax != null ? (o.log ? Math.log10(o.yMax) : o.yMax) : Math.max(...ys);
+  if (y1 === y0) { y1 += 1; y0 -= (o.yMin != null ? 0 : 1); }
+  const pad = (y1 - y0) * 0.06; if (o.yMin == null || o.log) y0 -= pad; if (o.yMax == null) y1 += pad;
+  const X = x => m.l + (x - x0) / (x1 - x0) * iw, Y = y => m.t + ih - ((o.log ? Math.log10(y) : y) - y0) / (y1 - y0) * ih;
+  const yf = o.yFmt || (v => fmt(v, 2));
+  let g = "";
+  const nY = 4;
+  for (let i = 0; i <= nY; i++) {
+    const yv = y0 + (y1 - y0) * i / nY, py = m.t + ih - ih * i / nY;
+    const label = o.log ? yf(Math.pow(10, yv)) : yf(yv);
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${py}" y2="${py}" stroke="${css("--grid")}"/><text x="${m.l - 6}" y="${py + 4}" text-anchor="end" font-size="11" fill="${css("--muted")}">${label}</text>`;
+  }
+  const nX = Math.min(6, Math.max(1, Math.floor(iw / 80)));
+  for (let i = 0; i <= nX; i++) {
+    const xv = Math.round(x0 + (x1 - x0) * i / nX);
+    g += `<text x="${X(xv)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="${css("--muted")}">${xv}</text>`;
+  }
+  g += `<line x1="${m.l}" x2="${W - m.r}" y1="${m.t + ih}" y2="${m.t + ih}" stroke="${css("--line")}"/>`;
+  for (const s of series) {
+    const d = s.data.filter(p => Number.isFinite(p.y) && (!o.log || p.y > 0)).map((p, i) => `${i ? "L" : "M"}${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`).join(" ");
+    g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.thin ? 1.2 : 2}" stroke-opacity="${s.thin ? 0.7 : 1}" stroke-linejoin="round"/>`;
+    if (!s.thin && s.data.length <= 60) for (const p of s.data) if (Number.isFinite(p.y)) g += `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="2.6" fill="${s.color}"/>`;
+  }
+  g += `<line id="cursor" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="${css("--muted")}" stroke-dasharray="3 3" style="display:none"/>`;
+  svg.innerHTML = g;
+  $(legendSel).innerHTML = series.map(s => `<span style="--c:${s.color}">${s.label}</span>`).join("");
+
+  const tip = $("#tip"), cur = svg.querySelector("#cursor");
+  svg.onmousemove = ev => {
+    const r = svg.getBoundingClientRect();
+    const xv = x0 + ((ev.clientX - r.left) * (W / r.width) - m.l) / iw * (x1 - x0);
+    const lines = series.map(s => {
+      let b = null;
+      for (const p of s.data) if (b == null || Math.abs(p.x - xv) < Math.abs(b.x - xv)) b = p;
+      return b ? `<span style="color:${s.color}">●</span> ${s.label} : ${yf(b.y)} <span style="opacity:.6">(étape ${b.x})</span>` : "";
+    });
+    tip.innerHTML = lines.join("<br>"); tip.style.display = "block";
+    tip.style.left = (ev.clientX + 14) + "px"; tip.style.top = (ev.clientY + 14) + "px";
+    cur.style.display = "block"; cur.setAttribute("x1", X(Math.max(x0, Math.min(x1, xv)))); cur.setAttribute("x2", X(Math.max(x0, Math.min(x1, xv))));
+  };
+  svg.onmouseleave = () => { tip.style.display = "none"; cur.style.display = "none"; };
+}
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+$("#refresh").onclick = load;
+$("#run").onchange = () => render(all.filter(r => r.run === $("#run").value));
+setInterval(() => { if ($("#auto").checked) load(); }, 3000);
+window.addEventListener("resize", () => render(all.filter(r => r.run === currentRun)));
+load();
+</script>
+</body>
+</html>
