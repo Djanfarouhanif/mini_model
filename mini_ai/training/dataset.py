@@ -47,13 +47,36 @@ def deduplicate(docs: Iterable[str]) -> list[str]:
     return out
 
 
+def iter_paragraphs(path: Path) -> Iterator[str]:
+    """Lit un fichier paragraphe par paragraphe (séparés par une ligne vide),
+    sans jamais charger le fichier entier en mémoire."""
+    buffer: list[str] = []
+    with path.open("r", encoding="utf-8", errors="replace") as f:
+        for line in f:
+            if line.strip():
+                buffer.append(line)
+            elif buffer:
+                yield "".join(buffer)
+                buffer = []
+    if buffer:
+        yield "".join(buffer)
+
+
 def read_raw_corpus(raw_dir: str | Path) -> list[str]:
+    """Tous les documents nettoyés et dédoublonnés de data/raw/ (en streaming)."""
     raw_dir = Path(raw_dir)
+    seen: set[str] = set()
     docs: list[str] = []
     for path in sorted(raw_dir.rglob("*")):
-        if path.suffix.lower() in {".txt", ".md", ".py"} and path.is_file():
-            docs.extend(split_documents(clean_text(path.read_text(encoding="utf-8", errors="replace"))))
-    return deduplicate(docs)
+        if path.suffix.lower() not in {".txt", ".md", ".py"} or not path.is_file():
+            continue
+        for raw in iter_paragraphs(path):
+            for doc in split_documents(clean_text(raw)):
+                key = hashlib.sha1(doc.lower().encode("utf-8")).hexdigest()
+                if key not in seen:
+                    seen.add(key)
+                    docs.append(doc)
+    return docs
 
 
 # ----------------------------------------------------------------- encoding
@@ -71,9 +94,15 @@ def prepare_dataset(
     vocab_size: int = 4096,
     val_ratio: float = 0.1,
     tokenizer: Tokenizer | None = None,
+    tokenizer_sample_chars: int = 50_000_000,
     verbose: bool = True,
 ) -> dict:
-    """Exécute tout le pipeline et écrit train.bin / validation.bin."""
+    """Exécute tout le pipeline et écrit train.bin / validation.bin.
+
+    Conçu pour des corpus de plusieurs Go : lecture en streaming, tokenizer
+    appris sur un échantillon de ``tokenizer_sample_chars`` caractères, et
+    tokens écrits au fil de l'eau dans les fichiers .bin.
+    """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -82,45 +111,62 @@ def prepare_dataset(
         raise FileNotFoundError(f"aucun fichier .txt/.md/.py dans {raw_dir}")
     n_chars = sum(len(d) for d in docs)
     if verbose:
-        print(f"[data] {len(docs)} documents, {n_chars:,} caractères après nettoyage/dédoublonnage")
+        print(f"[data] {len(docs):,} documents, {n_chars:,} caractères après nettoyage/dédoublonnage")
+
+    # Mélange déterministe : sert à la fois à l'échantillon du tokenizer et à
+    # la découpe train/val.
+    rng = np.random.default_rng(42)
+    order = rng.permutation(len(docs))
 
     if tokenizer is None:
-        tokenizer = Tokenizer.train(docs, vocab_size=vocab_size, verbose=verbose)
+        sample: list[str] = []
+        sample_chars = 0
+        for i in order:
+            sample.append(docs[i])
+            sample_chars += len(docs[i])
+            if sample_chars >= tokenizer_sample_chars:
+                break
+        if verbose and sample_chars < n_chars:
+            print(f"[data] tokenizer appris sur un échantillon de {sample_chars:,} caractères ({len(sample):,} documents)")
+        tokenizer = Tokenizer.train(sample, vocab_size=vocab_size, verbose=verbose)
+        del sample
         tokenizer.save(tokenizer_path)
         if verbose:
             print(f"[data] tokenizer sauvegardé : {tokenizer_path} ({tokenizer.vocab_size} tokens)")
 
-    # Mélange déterministe, puis découpe train/val par quantité de tokens
-    # (à la frontière des documents) : la validation reçoit ~val_ratio des
-    # tokens même si les documents ont des tailles très différentes.
-    rng = np.random.default_rng(42)
-    order = rng.permutation(len(docs))
-    encoded = [np.array(tokenizer.encode(docs[i], add_bos=True, add_eos=True), dtype=TOKEN_DTYPE) for i in order]
-    total = sum(len(e) for e in encoded)
-    target_val = int(total * val_ratio)
-    val_parts: list[np.ndarray] = []
-    val_count = 0
-    for e in encoded:
-        if val_count >= target_val or len(encoded) - len(val_parts) <= 1:
-            break
-        val_parts.append(e)
-        val_count += len(e)
-    train_parts = encoded[len(val_parts):]
-    train_ids = np.concatenate(train_parts) if train_parts else np.array([], dtype=TOKEN_DTYPE)
-    val_ids = np.concatenate(val_parts) if val_parts else train_ids[-max(1, len(train_ids) // 10) :]
-
+    # Découpe train/val par quantité de caractères (≈ tokens), à la frontière
+    # des documents ; les tokens sont écrits directement dans les fichiers.
     train_path = out_dir / "train.bin"
     val_path = out_dir / "validation.bin"
-    train_ids.tofile(train_path)
-    val_ids.tofile(val_path)
+    target_val_chars = int(n_chars * val_ratio) if len(docs) > 1 else 0
+    counts = {"train": 0, "val": 0}
+    with train_path.open("wb") as f_train, val_path.open("wb") as f_val:
+        val_chars = 0
+        for n, i in enumerate(order, 1):
+            doc = docs[i]
+            ids = np.array(tokenizer.encode(doc, add_bos=True, add_eos=True), dtype=TOKEN_DTYPE)
+            if val_chars < target_val_chars and n < len(docs):
+                f_val.write(ids.tobytes())
+                val_chars += len(doc)
+                counts["val"] += len(ids)
+            else:
+                f_train.write(ids.tobytes())
+                counts["train"] += len(ids)
+            if verbose and n % 20_000 == 0:
+                print(f"[data] {n:,}/{len(docs):,} documents encodés ({counts['train'] + counts['val']:,} tokens)")
+    if counts["val"] == 0:  # corpus d'un seul document : on recopie la fin du train
+        train_ids = np.fromfile(train_path, dtype=TOKEN_DTYPE)
+        train_ids[-max(1, len(train_ids) // 10):].tofile(val_path)
+        counts["val"] = max(1, len(train_ids) // 10)
+
     if verbose:
-        print(f"[data] train : {len(train_ids):,} tokens → {train_path}")
-        print(f"[data] val   : {len(val_ids):,} tokens → {val_path}")
+        print(f"[data] train : {counts['train']:,} tokens → {train_path}")
+        print(f"[data] val   : {counts['val']:,} tokens → {val_path}")
     return {
         "documents": len(docs),
         "chars": n_chars,
-        "train_tokens": int(len(train_ids)),
-        "val_tokens": int(len(val_ids)),
+        "train_tokens": counts["train"],
+        "val_tokens": counts["val"],
         "vocab_size": tokenizer.vocab_size,
     }
 

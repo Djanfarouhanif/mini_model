@@ -109,7 +109,8 @@ def cmd_prepare_data(args) -> None:
             raise SystemExit(f"--keep-tokenizer : aucun tokenizer trouvé à {args.tokenizer}")
         tokenizer = Tokenizer.load(args.tokenizer)
         print(f"[data] tokenizer existant réutilisé ({tokenizer.vocab_size} tokens) — les checkpoints restent compatibles")
-    prepare_dataset(args.raw, args.out, args.tokenizer, vocab_size=args.vocab_size, val_ratio=args.val_ratio, tokenizer=tokenizer)
+    prepare_dataset(args.raw, args.out, args.tokenizer, vocab_size=args.vocab_size, val_ratio=args.val_ratio,
+                    tokenizer=tokenizer, tokenizer_sample_chars=args.tokenizer_sample_chars)
 
 
 def cmd_train(args) -> None:
@@ -279,6 +280,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--vocab-size", type=int, default=C.DEFAULT_VOCAB_SIZE)
     sp.add_argument("--val-ratio", type=float, default=C.VAL_RATIO)
     sp.add_argument("--keep-tokenizer", action="store_true", help="réutilise tokenizer.json au lieu de le réapprendre (garde les checkpoints compatibles)")
+    sp.add_argument("--tokenizer-sample-chars", type=int, default=50_000_000, help="taille max de l'échantillon pour apprendre le tokenizer")
     sp.set_defaults(func=cmd_prepare_data)
 
     sp = sub.add_parser("train", help="entraîne le modèle")
