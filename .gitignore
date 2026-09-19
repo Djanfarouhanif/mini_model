@@ -4,7 +4,11 @@ __pycache__/
 checkpoints/*.pt
 checkpoints/*.tmp
 checkpoints/train_log.jsonl
+checkpoints/train_stdout.txt
 data/*.bin
 data/processed/
 data/memory.db
 data/workspace/
+# corpus téléchargés (re-téléchargeables avec download-data) — on garde sample.txt
+data/raw/*
+!data/raw/sample.txt

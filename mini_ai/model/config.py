@@ -71,6 +71,10 @@ PRESETS: dict[str, GPTConfig] = {
     "mini": GPTConfig(),
     # ~0,83M — garde les 8 000 tokens du PRD en réduisant l'embedding.
     "mini-8k": GPTConfig(vocab_size=8000, n_embd=64, n_layer=6, n_head=4),
+    # ~3,2M — phase 10 (expériences) : plus large (160) et plus profond (8 couches).
+    "medium": GPTConfig(vocab_size=4096, n_embd=160, n_layer=8, n_head=4),
+    # ~19,4M — nécessite un GPU et un corpus de plusieurs dizaines de millions de tokens.
+    "large": GPTConfig(vocab_size=4096, n_embd=384, n_layer=10, n_head=6),
     # Configuration littérale du PRD (~2,2M) : gardée pour comparaison.
     "prd": GPTConfig(vocab_size=8000, n_embd=128, n_layer=6, n_head=4),
     # Tout petit modèle pour les tests unitaires.
